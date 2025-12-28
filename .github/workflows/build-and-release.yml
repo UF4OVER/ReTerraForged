@@ -1,0 +1,86 @@
+name: Build & Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Create GitHub Release and upload jars'
+        type: boolean
+        required: true
+        default: true
+      tag:
+        description: 'Release tag (e.g. v0.0.6). Leave empty to use v<mod_version>.'
+        type: string
+        required: false
+      run_tests:
+        description: 'Run Gradle test task'
+        type: boolean
+        required: true
+        default: false
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+          cache: gradle
+
+      - name: Make Gradle wrapper executable
+        run: chmod +x ./gradlew
+
+      - name: Read versions from gradle.properties
+        id: props
+        shell: bash
+        run: |
+          MOD_VERSION=$(grep -E '^mod_version=' gradle.properties | cut -d'=' -f2 | tr -d '\r')
+          MC_VERSION=$(grep -E '^minecraft_version=' gradle.properties | cut -d'=' -f2 | tr -d '\r')
+          echo "mod_version=$MOD_VERSION" >> "$GITHUB_OUTPUT"
+          echo "mc_version=$MC_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build
+        run: |
+          ./gradlew --no-daemon clean build :fabric:remapJar :forge:remapJar
+
+      - name: Optional tests
+        if: ${{ inputs.run_tests }}
+        run: |
+          ./gradlew --no-daemon test
+
+      - name: Collect artifacts
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp -v fabric/build/libs/*fabric-${{ steps.props.outputs.mc_version }}.jar dist/ || true
+          cp -v forge/build/libs/*forge-${{ steps.props.outputs.mc_version }}.jar dist/ || true
+          cp -v common/build/libs/*-${{ steps.props.outputs.mc_version }}.jar dist/ || true
+          cp -v */build/libs/*sources.jar dist/ || true
+          ls -la dist
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: jars
+          path: dist/*
+
+      - name: Create GitHub Release
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.release }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag != '' && inputs.tag || format('v{0}', steps.props.outputs.mod_version) }}
+          name: ${{ inputs.tag != '' && inputs.tag || format('v{0}', steps.props.outputs.mod_version) }}
+          generate_release_notes: true
+          files: |
+            dist/*
