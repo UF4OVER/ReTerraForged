@@ -7,7 +7,6 @@ import net.minecraft.core.HolderGetter;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.worldgen.BootstapContext;
-import net.minecraft.data.worldgen.features.TreeFeatures;
 import net.minecraft.data.worldgen.placement.VegetationPlacements;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.biome.Biome;
@@ -56,7 +55,7 @@ public class BiomeModifierData {
 
 	@SafeVarargs
 	private static BiomeModifier prepend(GenerationStep.Decoration step, HolderSet<Biome> biomes, Holder<PlacedFeature>... features) {
-		return BiomeModifiers.add(Order.PREPEND, step, biomes, HolderSet.direct(features));
+		return BiomeModifiers.add(Order.PREPEND, step, raccoonman.reterraforged.world.worldgen.biome.modifier.Filter.Behavior.WHITELIST, biomes, HolderSet.direct(features));
 	}
 
 	@SafeVarargs
@@ -66,7 +65,7 @@ public class BiomeModifierData {
 	
 	@SafeVarargs
 	private static BiomeModifier append(GenerationStep.Decoration step, HolderSet<Biome> biomes, Holder<PlacedFeature>... features) {
-		return BiomeModifiers.add(Order.APPEND, step, biomes, HolderSet.direct(features));
+		return BiomeModifiers.add(Order.APPEND, step, raccoonman.reterraforged.world.worldgen.biome.modifier.Filter.Behavior.WHITELIST, biomes, HolderSet.direct(features));
 	}
 	
 	private static ResourceKey<BiomeModifier> createKey(String name) {

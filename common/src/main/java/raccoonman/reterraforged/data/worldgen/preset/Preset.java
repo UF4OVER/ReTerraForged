@@ -35,16 +35,12 @@ public record Preset(WorldSettings world, CaveSettings caves, ClimateSettings cl
 		MiscellaneousSettings.CODEC.fieldOf("miscellaneous").forGetter(Preset::miscellaneous)
 	).apply(instance, Preset::new));
 	
-	@Deprecated
-	public static final ResourceKey<Preset> KEY = RTFRegistries.createKey(RTFRegistries.PRESET, "preset");
-	
 	public Preset copy() {
 		return new Preset(this.world.copy(), this.caves.copy(), this.climate.copy(), this.terrain.copy(), this.rivers.copy(), this.filters.copy(), this.structures.copy(), this.miscellaneous.copy());
 	}
 
 	public HolderLookup.Provider buildPatch(RegistryAccess registries) {
 		RegistrySetBuilder builder = new RegistrySetBuilder();
-		this.addPatch(builder, RTFRegistries.PRESET, (preset, ctx) -> ctx.register(KEY, preset));
 		this.addPatch(builder, RTFRegistries.NOISE, NoiseData::bootstrap);
 		this.addPatch(builder, RTFRegistries.BIOME_MODIFIER, BiomeModifierData::bootstrap);
 		this.addPatch(builder, RTFRegistries.STRUCTURE_RULE, StructureRuleData::bootstrap);

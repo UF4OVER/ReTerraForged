@@ -64,12 +64,25 @@ public class RTFConfiguredFeatures {
 	public static void bootstrap(Preset preset, BootstapContext<ConfiguredFeature<?, ?>> ctx) {
 		MiscellaneousSettings miscellaneous = preset.miscellaneous();
 		
+		// build a default erode config for processors that need it
+		ErodeFeature.Config erodeConfig = new ErodeFeature.Config(
+			16, 0, // rockVar, rockMin
+			16, 0, // dirtVar, dirtMin
+			0.65F, 0.35F, // rockSteepness, dirtSteepness
+			0.75F, // screeSteepness
+			1.0F, 1.0F, // heightModifier, slopeModifier
+			1.0F, 1.0F, // sedimentModifier, sedimentNoise
+			0.65F // screeValue
+		);
+
 		if(miscellaneous.erosionDecorator) {
-			FeatureUtils.register(ctx, ERODE, RTFFeatures.ERODE, new ErodeFeature.Config());
+			FeatureUtils.register(ctx, ERODE, RTFFeatures.ERODE, erodeConfig);
 		}
 		
 		if(miscellaneous.naturalSnowDecorator || miscellaneous.smoothLayerDecorator) {
-			FeatureUtils.register(ctx, DECORATE_SNOW, RTFFeatures.DECORATE_SNOW, new DecorateSnowFeature.Config(miscellaneous.naturalSnowDecorator, miscellaneous.smoothLayerDecorator));
+			FeatureUtils.register(ctx, DECORATE_SNOW, RTFFeatures.DECORATE_SNOW,
+				new DecorateSnowFeature.Config(miscellaneous.naturalSnowDecorator, miscellaneous.smoothLayerDecorator, erodeConfig)
+			);
 		}
 
 		FeatureUtils.register(ctx, SWAMP_SURFACE, RTFFeatures.SWAMP_SURFACE, new SwampSurfaceFeature.Config(Blocks.CLAY.defaultBlockState(), Blocks.GRAVEL.defaultBlockState(), Blocks.DIRT.defaultBlockState()));

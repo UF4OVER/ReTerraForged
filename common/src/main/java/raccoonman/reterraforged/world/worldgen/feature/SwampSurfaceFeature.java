@@ -6,15 +6,11 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.QuartPos;
 import net.minecraft.world.level.ChunkPos;
-import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.Heightmap;
-import net.minecraft.world.level.levelgen.NoiseBasedChunkGenerator;
-import net.minecraft.world.level.levelgen.NoiseGeneratorSettings;
 import net.minecraft.world.level.levelgen.feature.Feature;
 import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.FeatureConfiguration;
@@ -24,7 +20,9 @@ import raccoonman.reterraforged.world.worldgen.noise.module.Noises;
 
 public class SwampSurfaceFeature extends Feature<Config> {
 	private static final Noise MATERIAL_NOISE = makeMaterialNoise();
-	
+	// 替代已弃用的 Biome.BIOME_INFO_NOISE：用于 swamp surface 的判定噪声（低频 2D）
+	private static final Noise BIOME_INFO_NOISE = makeBiomeInfoNoise();
+
 	public SwampSurfaceFeature(Codec<Config> codec) {
 		super(codec);
 	}
@@ -44,7 +42,9 @@ public class SwampSurfaceFeature extends Feature<Config> {
 				int worldX = chunkPos.getBlockX(x);
 				int worldZ = chunkPos.getBlockZ(z);
 				int surfaceY = chunk.getHeight(Heightmap.Types.WORLD_SURFACE, x, z);
-				double noise = Biome.BIOME_INFO_NOISE.getValue(worldX * 0.25D, worldZ * 0.25D, false);
+				float nx = (float) (worldX * 0.25D);
+				float nz = (float) (worldZ * 0.25D);
+				double noise = BIOME_INFO_NOISE.compute(nx, nz, 0);
 				BlockState filler = getMaterial(worldX, waterY, worldZ, waterY, config);
 
 				if(chunk.getNoiseBiome(QuartPos.fromBlock(x), QuartPos.fromBlock(surfaceY), QuartPos.fromBlock(z)).is(Biomes.SWAMP)) {
@@ -85,9 +85,14 @@ public class SwampSurfaceFeature extends Feature<Config> {
     
     private static Noise makeMaterialNoise() {
     	Noise base = Noises.simplex(23, 40, 2);
-    	return Noises.warpWhite(base, 213, 2, 4);    	
+    	return Noises.warpWhite(base, 213, 2, 4);
     }
-    
+
+	private static Noise makeBiomeInfoNoise() {
+		// 低频 2D 噪声；scale 越大越“平缓”。原版 BIOME_INFO_NOISE 属于非常低频。
+		return Noises.simplex(2345, 256, 1);
+	}
+
     public record Config(BlockState clayMaterial, BlockState gravelMaterial, BlockState dirtMaterial) implements FeatureConfiguration {
     	public static final Codec<Config> CODEC = RecordCodecBuilder.create(instance -> instance.group(
     		BlockState.CODEC.fieldOf("clay_material").forGetter(Config::clayMaterial),

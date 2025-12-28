@@ -6,8 +6,8 @@ import com.mojang.serialization.Codec;
 
 import raccoonman.reterraforged.registries.RTFBuiltInRegistries;
 
-// theres other worldgen libraries we can use for this that aren't so janky
-@Deprecated(forRemoval = true)
+// 还有其他世界生成库可以做这件事，也没那么糟糕
+@Deprecated
 public interface BiomeModifier {
     public static final Codec<BiomeModifier> CODEC = RTFBuiltInRegistries.BIOME_MODIFIER_TYPE.byNameCodec().dispatch(BiomeModifier::codec, Function.identity());
 	
