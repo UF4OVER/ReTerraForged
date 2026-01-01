@@ -151,7 +151,21 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 	    public void regenerate() {
 			WorldCreationContext settings = PresetEditorPage.this.screen.getSettings();
 	        RegistryAccess.Frozen registries = settings.worldgenLoadContext();
-	        HolderLookup.Provider provider = PresetEditorPage.this.preset.getPreset().buildPatch(registries);
+
+	        final HolderLookup.Provider provider;
+	        try {
+	        	provider = PresetEditorPage.this.preset.getPreset().buildPatch(registries);
+	        } catch (Throwable t) {
+	        	// If registry patch building fails (e.g. missing/unreferenced keys), don't hard-crash the UI.
+	        	RTFCommon.LOGGER.error("Failed to build preset registry patch for preview (preset={}). Preview will be disabled for this session.", PresetEditorPage.this.preset.getName(), t);
+	        	this.tile = null;
+	        	this.hoveredCoords = "";
+	        	this.legendValues[0] = "";
+	        	this.legendValues[1] = "";
+	        	this.legendValues[2] = "";
+	        	return;
+	        }
+
 	        HolderGetter<Preset> presets = provider.lookupOrThrow(RTFRegistries.PRESET);
 	        HolderGetter<Noise> noises = provider.lookupOrThrow(RTFRegistries.NOISE);
 	        Preset preset = presets.getOrThrow(Preset.KEY).value();
@@ -218,9 +232,14 @@ public abstract class PresetEditorPage extends BisectedPage<PresetConfigScreen, 
 	        RenderSystem.blendFunc(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
 	    	guiGraphics.blit(this.textureId, x, y, 0, 0, this.width, this.height, this.width, this.height);
 
-	    	this.updateLegend(mx, my);
-
-	    	this.renderLegend(guiGraphics, mx, my, this.legendLabels, this.legendValues, x, y + this.width, 10, 0xFFFFFF);
+	    	if (this.tile != null) {
+	    		this.updateLegend(mx, my);
+	    		this.renderLegend(guiGraphics, mx, my, this.legendLabels, this.legendValues, x, y + this.width, 10, 0xFFFFFF);
+	    	} else {
+	    		// Keep UI stable even if preview generation failed.
+	    		Font font = Minecraft.getInstance().font;
+	    		guiGraphics.drawString(font, Component.translatable(RTFTranslationKeys.GUI_LABEL_PREVIEW_UNAVAILABLE), x + 6, y + 6, 0xFF5555, false);
+	    	}
 	    }
 
 	    private boolean updateLegend(int mx, int my) {

@@ -148,6 +148,7 @@ public final class RTFTranslationKeys {
 	public static final String GUI_LABEL_PREVIEW_AREA = resolve("gui.label.previewArea");
 	public static final String GUI_LABEL_PREVIEW_TERRAIN = resolve("gui.label.previewTerrain");
 	public static final String GUI_LABEL_PREVIEW_BIOME = resolve("gui.label.previewBiome");
+	public static final String GUI_LABEL_PREVIEW_UNAVAILABLE = resolve("gui.label.previewUnavailable");
 	public static final String GUI_LABEL_CONTINENT = resolve("gui.label.continent");
 	public static final String GUI_LABEL_CONTROL_POINTS = resolve("gui.label.controlPoints");
 	public static final String GUI_LABEL_PROPERTIES = resolve("gui.label.properties");
@@ -178,3 +179,4 @@ public final class RTFTranslationKeys {
 		return RTFCommon.MOD_ID + "." + key;
 	}
 }
+
