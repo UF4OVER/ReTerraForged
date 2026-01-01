@@ -44,7 +44,7 @@ public class PresetBiomeModifierData {
 	public static final ResourceKey<BiomeModifier> REPLACE_REDWOOD_TREES = createKey("replace_redwood_trees");
 	public static final ResourceKey<BiomeModifier> REPLACE_JUNGLE_TREES = createKey("replace_jungle_trees");
 	public static final ResourceKey<BiomeModifier> REPLACE_JUNGLE_EDGE_TREES = createKey("replace_jungle_edge_trees");
-	public static final ResourceKey<BiomeModifier> REPLACE_BADLANDS_TREES = createKey("replace_jungle_edge_trees");
+	public static final ResourceKey<BiomeModifier> REPLACE_BADLANDS_TREES = createKey("replace_badlands_trees");
 	public static final ResourceKey<BiomeModifier> REPLACE_WOODED_BADLANDS_TREES = createKey("replace_wooded_badlands_trees");
 
 	public static final ResourceKey<BiomeModifier> ADD_FOREST_GRASS = createKey("add_forest_grass");

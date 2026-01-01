@@ -54,15 +54,24 @@ public class PresetConfigScreen extends LinkedPageScreen {
 		return this.parent.getUiState().getSettings();
 	}
 
-	public void applyPreset(PresetEntry preset) throws IOException {		
-		Pair<Path, PackRepository> path = this.parent.getDataPackSelectionSettings(this.parent.getUiState().getSettings().dataConfiguration());
-		Path exportPath = path.getFirst().resolve("reterraforged-preset.zip");
-		this.exportAsDatapack(exportPath, preset);
-		PackRepository repository = path.getSecond();
-		repository.reload();
-		if(repository.addPack("file/" + exportPath.getFileName())) {
-			this.parent.tryApplyNewDataPacks(repository, false, (data) -> {
-			});
+	public void applyPreset(PresetEntry preset) throws IOException {
+		try {
+			Pair<Path, PackRepository> path = this.parent.getDataPackSelectionSettings(this.parent.getUiState().getSettings().dataConfiguration());
+			Path exportPath = path.getFirst().resolve("reterraforged-preset.zip");
+			this.exportAsDatapack(exportPath, preset);
+			PackRepository repository = path.getSecond();
+			repository.reload();
+			if(repository.addPack("file/" + exportPath.getFileName())) {
+				this.parent.tryApplyNewDataPacks(repository, false, (data) -> {
+				});
+			}
+		} catch (IOException e) {
+			// keep original contract
+			RTFCommon.LOGGER.error("Failed to apply preset {}", preset != null ? preset.getName() : "<null>", e);
+			throw e;
+		} catch (Exception e) {
+			RTFCommon.LOGGER.error("Failed to apply preset {}", preset != null ? preset.getName() : "<null>", e);
+			throw new IOException("Failed to apply preset", e);
 		}
 	}
 	
@@ -83,13 +92,16 @@ public class PresetConfigScreen extends LinkedPageScreen {
 		RTFCommon.LOGGER.info("Exported datapack to {}", outputPath);
 	}
 	
-	private static void copyToZip(Path input, Path output) {
+	private static void copyToZip(Path input, Path output) throws IOException {
+		// Ensure parent directory exists
+		Files.createDirectories(output.toAbsolutePath().getParent());
+		// Zip FS provider can't always overwrite cleanly; delete first for safety.
+		Files.deleteIfExists(output);
+
 		Map<String, String> env = ImmutableMap.of("create", "true");
 	    URI uri = URI.create("jar:" + output.toUri());
 	    try (FileSystem fs = FileSystems.newFileSystem(uri, env)) {
 	        PathUtils.copyDirectory(input, fs.getPath("/"), StandardCopyOption.REPLACE_EXISTING);
-	    } catch (IOException e) {
-	        e.printStackTrace();
 	    }
 	}
 }

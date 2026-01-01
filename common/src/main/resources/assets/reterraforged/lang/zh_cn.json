@@ -149,7 +149,7 @@
 
   "reterraforged.gui.selectPreset.inputPrompt": "输入预设名称",
   "reterraforged.gui.selectPreset.missingLegacyPresets": "未找到任何旧版预设",
-  "reterraforged.gui.selectPreset.title": "预设与默认值，汉化: UF4 BY GPT-5.2",
+  "reterraforged.gui.selectPreset.title": "预设与默认值 汉化: UF4 BY GPT-5.2",
 
   "reterraforged.gui.preset.default.name": "默认",
   "reterraforged.gui.preset.beautiful.name": "TerraForged - 漂亮（旧版）",

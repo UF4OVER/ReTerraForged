@@ -51,6 +51,14 @@ class PresetListPage extends BisectedPage<PresetConfigScreen, PresetEntry, Abstr
 	
 	private static final Predicate<String> IS_VALID = Pattern.compile("^[A-Za-z0-9\\-_ ]+$").asPredicate();
 
+	private static String sanitizePresetFileBaseName(String name) {
+		// If a translation key leaked into the saved name, replace it with a safe readable base.
+		if (name != null && name.startsWith("reterraforged.") && name.contains(".")) {
+			return "Preset";
+		}
+		return name;
+	}
+
 	private EditBox input;
 	private Button createPreset;
 	private Button deletePreset;
@@ -94,7 +102,7 @@ class PresetListPage extends BisectedPage<PresetConfigScreen, PresetEntry, Abstr
 		this.createPreset.active = this.isValidPresetName(this.input.getValue());
 		this.copyPreset = PresetWidgets.createThrowingButton(RTFTranslationKeys.GUI_BUTTON_COPY, () -> {
 			PresetEntry preset = this.left.getSelected().getWidget();
-			String name = preset.getName().getString();
+			String name = sanitizePresetFileBaseName(preset.getName().getString());
 			int counter = 1;
 			String uniqueName;
 			while(Files.exists(PRESET_PATH.resolve((uniqueName = name + " (" + counter + ")") + ".json"))) { 
@@ -167,7 +175,7 @@ class PresetListPage extends BisectedPage<PresetConfigScreen, PresetEntry, Abstr
 			try {
 				this.screen.applyPreset(selected.getWidget());
 			} catch (IOException e) {
-				e.printStackTrace();
+				RTFCommon.LOGGER.error("Failed to apply preset {}", selected.getWidget().getName(), e);
 			}
 		}
 	}
